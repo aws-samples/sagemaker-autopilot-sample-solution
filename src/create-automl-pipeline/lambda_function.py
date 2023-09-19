@@ -97,7 +97,7 @@ def create_automl_pipeline(pipeline_name='TrainingPipeline', role='lambda-role-p
     )
     autopilot_mode = ParameterString(
         name="AutopilotMode",
-        default_value="ENSEMBLING",  # or HYPERPARAMETER_TUNING 
+        default_value="ENSEMBLING",  # Only ENSEMBLE mode is supported at this time.
     )
     max_autopilot_candidates = ParameterInteger(
         name="MaxAutopilotCandidates", 
@@ -358,7 +358,7 @@ def lambda_handler(event, context):
                     property_file=problem_type,
                     json_path="problem_type.job_objective.value",
                 ),
-            "AutopilotMode": autopilot_mode,
+            "AutopilotMode": autopilot_mode.default_value,
         },
         cache_config=cache_config,
     )
@@ -699,7 +699,9 @@ def lambda_handler(event, context):
     best_model = autopilot_job["BestCandidate"]
     model_containers = best_model["InferenceContainers"]
     if event["ProblemType"] in ["BinaryClassification", "MulticlassClassification"]:
-        model_containers[0]["Environment"]["SAGEMAKER_INFERENCE_OUTPUT"] = "predicted_label,probability"
+        # For ENSEMBLING autopilot mode.
+        model_containers[0]["Environment"]["SAGEMAKER_INFERENCE_OUTPUT"] = "predicted_label,probability,probabilities,labels"
+        # Add case when autopilot_mode is HYPERPARAMETER_TUNING
     model_statistics_report_s3_path = best_model[
         "CandidateProperties"
     ]["CandidateArtifactLocations"]["ModelInsights"]
@@ -819,7 +821,7 @@ def lambda_handler(event, context):
         parameters=[
             model_package_group_name,
             target_attribute_name,
-            autopilot_mode,
+            # autopilot_mode,    # Only ENSEMBLE mode is supported at this time.
             max_autopilot_candidates,
             max_autopilot_job_runtime,
             max_autopilot_training_job_runtime,
