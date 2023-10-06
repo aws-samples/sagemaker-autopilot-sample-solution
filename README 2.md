@@ -4,7 +4,7 @@ This solution automates the infrastructure required for creating and consuming M
 Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
 
 ## Reference Architecture
-![](https://gitlab.aws.dev/daythaku/appian-sgmkr-poc/-/raw/main/ML-Ref-Architecture.jpg)
+![](https://github.com/aws-samples/sagemaker-autopilot-sample-solution/blob/main/ML-Ref-Architecture.jpg)
 
 ## Packaging sagemaker python sdk for lambda
 Sagemaker python sdk is not supported inside lambda and hence we have to package it as a layer to be used in lambda function for sagemaker pipelines. This has already been packaged but users can follow steps below to create a new package, if needed.
