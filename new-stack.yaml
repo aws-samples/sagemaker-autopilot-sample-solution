@@ -87,12 +87,12 @@ Outputs:
   ModelBucket:
     Value: !Ref S3Bucket3
 
-  ArtifactLambdaFunctionName:
-    Value:
-      Ref: S3CopyLambda
+  # ArtifactLambdaFunctionName:
+  #   Value:
+  #     Ref: S3CopyLambda
 
-  ArtifactCopyStatus:
-    Value: !GetAtt CustomLambdaResource.Data
+  # ArtifactCopyStatus:
+  #   Value: !GetAtt CustomLambdaResource.Data
 
   LambdaRoleARN:
     Description: Role for Lambda execution.
@@ -156,100 +156,8 @@ Resources:
     Properties:
       BucketName: !Ref ModelBucket
 
-  S3CopyLambda:
-    Type: AWS::Lambda::Function
-    Properties:
-      Code:
-        ZipFile: |
-          import boto3
-          import json
-          import cfnresponse
-          import urllib3
-
-          http = urllib3.PoolManager()
-          client = boto3.client('s3')
-          s3 = boto3.resource('s3')
-          def lambda_handler (event, context):
-            try:  
-              print("Log the received event")
-              print("Received event: " + json.dumps(event, indent=2))
-              
-              reqtype=event['RequestType']
-              destbucket= event['ResourceProperties']['DestBucket']
-              files= event['ResourceProperties']['keys']
-              responseData={}
-              print (files)
-              #print (mybucket)
-              print (destbucket)
-              if reqtype=="Create":
-                      for file in files:
-                          print ("file to be copied is "+ file)
-                          parts = file.rsplit('/',1)
-                          if len(parts)>1:
-                              filekey= parts[1]
-                              print (filekey)
-                          key= filekey
-                          response=http.request('GET', file)
-                          print(response)
-                          file_data=response.data
-                          object = s3.Object(
-                              bucket_name=destbucket, 
-                              key=key)
-                          object.put(Body=file_data)
-                      print ("All files copied successfully")
-                      responseData={}
-                      responseData['Data']="Files copied successfully"
-                      cfnresponse.send(event, context, cfnresponse.SUCCESS, responseData)
-                      return "SUCCESS"
-              else:
-                  responseData={}
-                  responseData['Data']="no action taken"
-                  cfnresponse.send(event, context, cfnresponse.SUCCESS, responseData)
-                  return "SUCCESS"
-            except:
-                  print("Failed to copy files")
-                  responseData={}
-                  responseData['Data']="Failed to copy files"
-                  cfnresponse.send(event, context, cfnresponse.FAILED, responseData)
-                  return "FAILED"    
-      FunctionName: !Sub copycodeartifacts-${EnvName}
-      Handler: index.lambda_handler
-      Runtime: python3.9
-      Role: !GetAtt S3CopyFunctionRole.Arn
-      MemorySize: 256
-      Timeout: 30
-  artifactlambdaLogGroup:
-    Type: AWS::Logs::LogGroup
-    Properties:
-      LogGroupName: !Sub /aws/lambda/${S3CopyLambda}
-      RetentionInDays: 90
-  S3CopyFunctionRole:
-    Type: AWS::IAM::Role
-    Properties:
-      RoleName: !Sub lambdarole-s3copy-${EnvName}
-      AssumeRolePolicyDocument:
-        Statement:
-          - Action:
-            - sts:AssumeRole
-            Effect: Allow
-            Principal:
-              Service:
-              - lambda.amazonaws.com
-        Version: 2012-10-17
-      ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/AmazonS3FullAccess
-        - arn:aws:iam::aws:policy/AWSLambdaExecute
-      Path: /
-  CustomLambdaResource:
-    Type: AWS::CloudFormation::CustomResource
-    DependsOn: [S3CopyLambda, S3Bucket1]
-    Properties:
-      ServiceToken: !GetAtt S3CopyLambda.Arn
-      DestBucket: !Ref SourceCodeBucket
-      keys: [ !Join ['', [ !Ref LambdaCodepath, !Ref LambdaCodeZipFile]], !Join ['', [ !Ref LayerPckgPath, !Ref LayerPkgZipFile]] ]
   EventRule:
     Type: AWS::Events::Rule
-    DependsOn: CustomLambdaResource
     Properties:
       Description: rule to publish sagemaker pipeline status events
       EventBusName: default
@@ -279,7 +187,6 @@ Resources:
 
   LambdaRole:
     Type: AWS::IAM::Role
-    DependsOn: CustomLambdaResource
     Properties:
       RoleName:
         Fn::Sub: lambda-role-${EnvName}
@@ -309,28 +216,22 @@ Resources:
                 Resource: '*'
   LambdaLayer:
     Type: AWS::Lambda::LayerVersion
-    DependsOn: CustomLambdaResource
     Properties:
       CompatibleRuntimes:
         - python3.9
-      Content:
-        S3Bucket: !Ref SourceCodeBucket
-        S3Key: !Ref LayerPkgZipFile
+      Content: /Users/daythaku/github/sagemaker-autopilot-sample-solution/src/sgmkr-sdk-layer
       Description: Sagemaker SDK layer
       LayerName: sgmkr-sdk-layer
       LicenseInfo: MIT
   
   LambdaFunction:
     Type: AWS::Lambda::Function
-    DependsOn: CustomLambdaResource
     Properties:
       FunctionName:
         Fn::Sub: create-sgmkr-pipeline-${EnvName}
       Description: LambdaFunction to create and execute sagemaker pipeline
       Runtime: python3.9
-      Code: 
-          S3Bucket: !Ref SourceCodeBucket
-          S3Key: !Ref LambdaCodeZipFile
+      Code: /Users/daythaku/github/sagemaker-autopilot-sample-solution/src/create-automl-pipeline
       Handler: lambda_function.lambda_handler
       Layers:
           - !Ref LambdaLayer
@@ -348,14 +249,12 @@ Resources:
 
   lambdaLogGroup:
     Type: AWS::Logs::LogGroup
-    DependsOn: CustomLambdaResource
     Properties:
       LogGroupName: !Sub /aws/lambda/${LambdaFunctionName}/${EnvName}
       RetentionInDays: 90
 
   InvokeSMPipelineLambda:
     Type: AWS::Lambda::Function
-    DependsOn: CustomLambdaResource
     Properties:
       Code:
         ZipFile: |
@@ -378,7 +277,8 @@ Resources:
           def lambda_handler(event, context):
               print("Log the received event")
               print("Received event: " + json.dumps(event, indent=2))
-              body=json.loads(event["body"])
+              # body=json.loads(event["body"])
+              body=event
               
               pipeline_name = body['pipelinename']
               databucket= body['databucket']
@@ -423,7 +323,6 @@ Resources:
           TZ: UTC
   DeploySMEndpointLambda:
     Type: AWS::Lambda::Function
-    DependsOn: CustomLambdaResource
     Properties:
       FunctionName: !Sub deploysmept-automl-${EnvName}
       Description: LambdaFunction to create and execute sagemaker pipeline
@@ -508,7 +407,7 @@ Resources:
 
   PrimerInvoke:
     Type: AWS::CloudFormation::CustomResource
-    DependsOn: [LambdaFunction, CustomLambdaResource]
+    DependsOn: [LambdaFunction]
     Properties:
       ServiceToken: !GetAtt LambdaFunction.Arn
       pipelinename: !Ref PipelineName
