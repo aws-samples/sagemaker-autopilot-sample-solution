@@ -872,12 +872,12 @@ def lambda_handler(event, context):
             from sagemaker.workflow.pipeline import Pipeline
             pipeline = Pipeline(name=pipeline_name)
 
-            # Show the parameters.
-            # import json
-            import pandas as pd
-            pipeline_description = pipeline.describe()
-            pipeline_parameters = json.loads(pipeline_description['PipelineDefinition'])
-            print(pd.DataFrame(pipeline_parameters['Parameters']))
+            # # Show the parameters.
+            # # import json
+            # import pandas as pd
+            # pipeline_description = pipeline.describe()
+            # pipeline_parameters = json.loads(pipeline_description['PipelineDefinition'])
+            # print(pd.DataFrame(pipeline_parameters['Parameters']))
             
             responseData={}
             responseData['Data']="automl pipeline created successfully"

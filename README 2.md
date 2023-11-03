@@ -16,6 +16,7 @@ Sagemaker python sdk is not supported inside lambda and hence we have to package
 steps for packaging lambda layer (run these steps in the root directory of the repo)
 
 ```
+pip install boto3 --target src/sgmkr-sdk-layer/python
 pip install sagemaker --target src/sgmkr-sdk-layer/python
 cd src/sgmkr-sdk-layer/python
 find . -type d -name "tests" -exec rm -rfv {} +
@@ -57,5 +58,22 @@ find . -type d -name "__pycache__" -exec rm -rfv {} +
         --payload '{ "endpoint_name": "your-endpoint-name", "endpoint_instance_type": "ml.m5.xlarge", "model_name": ",model name created by the pipeline", "endpoint_config_name": "your-model-config-name" }' \
         response.json
     ```
-* Test the model by invoking the sagemaker endpoint created in previous step
+* Invoke the sagemaker endpoint created in previous step
+      ```
+      invoke-endpoint \
+        --endpoint-name <value> \
+        --body <value> \
+        --content-type <value> \
+        --accept <value> \
+      ```
+      You can also use the included sample test scripts for testing your pipeline.
+      ```
+      cd src/test-automl-pipeline
+      ./test-pipeline.sh <pipeline name>
+
+      ```
+      
 ## Resources
+* https://docs.aws.amazon.com/sagemaker/latest/dg/whatis.html
+* https://sagemaker.readthedocs.io/en/stable/
+* https://auto.gluon.ai/stable/index.html
