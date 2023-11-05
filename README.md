@@ -67,9 +67,11 @@ find . -type d -name "__pycache__" -exec rm -rfv {} +
         --accept <value> \
     ```
 
-You can also use the included sample test scripts for testing your pipeline. <br/>
-    cd src/test-automl-pipeline \  <br/>
-    ./test-pipeline.sh <pipeline name>  <br/>
+* You can also use the included sample test scripts for testing your pipeline.
+  ```
+    cd src/test-automl-pipeline
+    ./test-pipeline.sh <pipeline name>
+  ```
 
 
 
