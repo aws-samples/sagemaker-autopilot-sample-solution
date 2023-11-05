@@ -68,11 +68,10 @@ find . -type d -name "__pycache__" -exec rm -rfv {} +
     ```
 
 You can also use the included sample test scripts for testing your pipeline.
-    ```
-        cd src/test-automl-pipeline \
-        ./test-pipeline.sh <pipeline name>
-    ```
-    
+    cd src/test-automl-pipeline \
+    ./test-pipeline.sh <pipeline name>
+
+
 
 ## Resources
 * https://docs.aws.amazon.com/sagemaker/latest/dg/whatis.html
