@@ -41,7 +41,7 @@ find . -type d -name "__pycache__" -exec rm -rfv {} +
       --capabilities CAPABILITY_NAMED_IAM
 
     ```
-* Invoke sagemaker pipeline by executing pipeline invocation lambda created by cloudformation deployment step
+* Upload training data to the S3 databucket from previous step and invoke sagemaker pipeline by executing pipeline invocation lambda created by cloudformation deployment step
 
   ```
         aws lambda invoke \
