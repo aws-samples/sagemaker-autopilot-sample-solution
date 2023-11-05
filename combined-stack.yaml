@@ -219,7 +219,8 @@ Resources:
     Properties:
       CompatibleRuntimes:
         - python3.9
-      Content: <project-root-directory>/src/sgmkr-sdk-layer
+      #update content property with location of code for lambda layer
+      Content: src/sgmkr-sdk-layer
       Description: Sagemaker SDK layer
       LayerName: sgmkr-sdk-layer
       LicenseInfo: MIT
@@ -231,7 +232,8 @@ Resources:
         Fn::Sub: create-sgmkr-pipeline-${EnvName}
       Description: LambdaFunction to create and execute sagemaker pipeline
       Runtime: python3.9
-      Code: <project-root-directory>/src/create-automl-pipeline
+      #update code property with location of code for lambda function
+      Code: src/create-automl-pipeline
       Handler: lambda_function.lambda_handler
       Layers:
           - !Ref LambdaLayer
