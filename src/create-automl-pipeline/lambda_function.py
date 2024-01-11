@@ -119,6 +119,10 @@ def create_automl_pipeline(pipeline_name='TrainingPipeline', role='lambda-role-p
         name="InstanceType", 
         default_value="ml.m5.xlarge",
     )
+    inference_instance_types = ParameterString(
+        name="InferenceInstanceType", 
+        default_value="ml.m5.xlarge,ml.m5.4xlarge,ml.m5.12xlarge",
+    )
     model_approval_status = ParameterString(
         name="ModelApprovalStatus", 
         default_value="Approved",
@@ -732,8 +736,8 @@ def lambda_handler(event, context):
             "Containers": model_containers,
             "SupportedContentTypes": ["text/csv"],
             "SupportedResponseMIMETypes": ["text/csv"],
-            "SupportedTransformInstanceTypes": [event["InstanceType"]],
-            "SupportedRealtimeInferenceInstanceTypes": [event["InstanceType"]],
+            "SupportedTransformInstanceTypes": event["InstanceType"].split(","),
+            "SupportedRealtimeInferenceInstanceTypes": event["InstanceType"].split(","),
         },
         ModelApprovalStatus=event["ModelApprovalStatus"],
         ModelMetrics={
@@ -771,7 +775,7 @@ def lambda_handler(event, context):
             "AutopilotJobName": autopilot_job_name,
             "ModelPackageGroupName": model_package_group_name,
             "ModelApprovalStatus": model_approval_status,
-            "InstanceType": instance_type,
+            "InstanceType": inference_instance_types,
             "ProblemType": JsonGet(
                 step_name=step_train_test_split_processor.name,
                 property_file=problem_type,
