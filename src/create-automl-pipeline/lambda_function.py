@@ -831,6 +831,7 @@ def lambda_handler(event, context):
             max_autopilot_training_job_runtime,
             instance_count,
             instance_type,
+            inference_instance_types,
             model_approval_status,
             input_uri,
             s3_bucket,
